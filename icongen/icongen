@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+if [ "$1" = "-h" -o "$1" = "--help" -o -z "$1" ]; then cat <<EOF
+icongen v1.0.0 (https://github.com/andrewmast/commands/blob/master/icongen)
+
+Creates an icns file from a provided 1024x1024 png file.
+
+This command takes a png as its first argument:
+    `basename "$0"` icon.png
+
+If you want to give the icon a custom name, use the second argument:
+    `basename "$0"` icon.png "Icon Name"
+
+Copyright (c) Andrew Mast <http://github.com/andrewmast>
+EOF
+exit; fi
+
+ICONNAME=${2:-$(basename "${1}" '.png')};
+ICON="${ICONNAME}.icns";
+ICONSET="${ICONNAME}.iconset";
+
+if [ -a "${ICON}" ]; then
+	echo "${ICONNAME}.icns already exists!";
+	exit 1;
+fi;
+
+if [ -a "${ICONSET}" ]; then
+	echo "${ICONNAME}.iconset already exists!";
+	exit 1;
+fi;
+
+{
+	mkdir -p "${ICONSET}";
+
+	sips -z 16 16     "${1}" --out "${ICONSET}/icon_16x16.png"
+	sips -z 32 32     "${1}" --out "${ICONSET}/icon_16x16@2x.png"
+	sips -z 32 32     "${1}" --out "${ICONSET}/icon_32x32.png"
+	sips -z 64 64     "${1}" --out "${ICONSET}/icon_32x32@2x.png"
+	sips -z 128 128   "${1}" --out "${ICONSET}/icon_128x128.png"
+	sips -z 256 256   "${1}" --out "${ICONSET}/icon_128x128@2x.png"
+	sips -z 256 256   "${1}" --out "${ICONSET}/icon_256x256.png"
+	sips -z 512 512   "${1}" --out "${ICONSET}/icon_256x256@2x.png"
+	sips -z 512 512   "${1}" --out "${ICONSET}/icon_512x512.png"
+	cp                "${1}"       "${ICONSET}/icon_512x512@2x.png"
+
+	iconutil -c icns "${ICONSET}" --output "${ICON}"
+
+	rm -R "${ICONSET}"
+} &> /dev/null
